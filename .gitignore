@@ -1,0 +1,28 @@
+# --- Python (Root) ---
+.venv/
+__pycache__/
+*.pyc
+.env
+
+# --- NestJS (Inside backend/) ---
+# /를 빼면 모든 하위 폴더의 해당 이름을 무시합니다.
+node_modules/
+dist/
+build/
+backend/dist/
+backend/node_modules/
+
+# --- Logs ---
+logs
+*.log
+npm-debug.log*
+
+# --- OS & IDE ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- Project Specific ---
+# 만약 이미지를 로컬에 다운로드했다면 제외하는 것이 좋습니다.
+*.jpg
+*.png
