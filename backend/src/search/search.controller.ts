@@ -16,4 +16,16 @@ export class SearchController {
 
     return this.searchService.getHomepageFeed(limit, startOffset);
   }
+
+  @Get('search')
+  async search(
+    @Query('i', ParseIntPipe) imageId: number,
+    @Query('a') annId?: string,
+    @Query('n') n?: string,
+  ) {
+    const limit = n ? parseInt(n) : 100;
+    const annotationId = annId ? parseInt(annId) : undefined;
+
+    return this.searchService.searchSimilarItems(imageId, annotationId, limit);
+  }
 }
