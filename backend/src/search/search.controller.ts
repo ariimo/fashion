@@ -21,11 +21,8 @@ export class SearchController {
   async search(
     @Query('i', ParseIntPipe) imageId: number,
     @Query('a') annId?: string,
-    @Query('n') n?: string,
+    @Query('n', new ParseIntPipe({ optional: true })) n?: number,
   ) {
-    const limit = n ? parseInt(n) : 100;
-    const annotationId = annId ? parseInt(annId) : undefined;
-
-    return this.searchService.searchSimilarItems(imageId, annotationId, limit);
+    return this.searchService.searchSimilarItems(imageId, annId, n || 100);
   }
 }
