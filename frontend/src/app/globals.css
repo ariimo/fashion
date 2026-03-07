@@ -4,3 +4,33 @@ body {
   background-color: #f9fafb;
   color: #111827;
 }
+
+/* 💡 스캔 후 은은하게 정착하는 애니메이션 */
+@keyframes scan-to-bright {
+  0% {
+    fill-opacity: 0.4; /* 처음에 무지개 색이 어느 정도 보임 */
+    filter: brightness(1.4); /* 초기에 확 밝아지는 느낌 */
+  }
+  100% {
+    fill-opacity: 0.4; /* 마지막엔 무지개 색은 거의 안 보이고 은은한 광택만 남음 */
+    filter: brightness(1.2); /* 원본보다 살짝 밝은 상태 유지 */
+  }
+}
+
+.fashion-polygon {
+  cursor: pointer;
+  pointer-events: auto;
+  fill-opacity: 0;
+  stroke: none !important;
+  transition: fill-opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* 💡 마우스를 올렸을 때 시퀀스 실행 */
+.fashion-polygon:hover {
+  animation: scan-to-bright 1.2s forwards ease-out;
+}
+
+.selected-polygon {
+  fill-opacity: 0.2 !important;
+  filter: brightness(1.15);
+}
