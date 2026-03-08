@@ -1,98 +1,64 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Fashionpedia: Intelligent Clothing Search 👗
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+![Main Page](.github/assets/mainpage.png)
+![Search Page](.github/assets/searchpage.png)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This repository contains the complete implementation of a cutting-edge fashion discovery platform designed to help users find and explore clothing items based on visual similarity and specific garment features.
 
-## Description
+## 🚀 Project Overview & Completed Requirements
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This system provides a seamless, Pinterest-inspired user experience for exploring fashion items. Below is the confirmation of all implemented core features:
 
-## Project setup
+### 1. Garment Highlight Animation (Frontend)
 
-```bash
-$ npm install
-```
+![Highlight](.github/assets/segment%20highlight.png)
 
-## Compile and run the project
+- **Details:** The frontend features an interactive, intuitive image viewer. When viewing a specific fashion look, users can hover over individual garments (e.g., shirts, pants, skirts). These items are dynamically highlighted using segmentation masks directly extracted from the dataset.
+- **Experience:** The application utilizes a custom `"scan-to-bright"` CSS animation (defined in `globals.css` and applied via `.fashion-polygon`). Hovering over a segment illuminates it, and clicking it locks the selection, instantly triggering a targeted search for that specific garment.
 
-```bash
-# development
-$ npm run start
+### 2. Fluid Rendering & Masonry Layout (Frontend)
 
-# watch mode
-$ npm run start:dev
+![Fluid](.github/assets/fluid.png)
 
-# production mode
-$ npm run start:prod
-```
+- **Details:** To handle the vast collection of fashion images elegantly, the application employs a highly responsive CSS multi-column Masonry layout (`columns-3xs`, `columns-2` with `break-inside-avoid`).
+- **Performance:** The feed fluidly adapts to different screen sizes. More importantly, it supports smooth, infinite scrolling powered by the modern `IntersectionObserver` API. This ensures optimal rendering and performance even when browsing through 1,000+ images, similar to the experience on platforms like `same.energy`.
 
-## Run tests
+### 3. Navigation Flow (Frontend & Browser Native)
 
-```bash
-# unit tests
-$ npm run test
+- **Details:** The application deeply integrates with Next.js routing to ensure a robust, native browsing experience.
+- **Experience:** Every search action and item selection updates the URL with specific query parameters (e.g., `?i=[image_id]&a=[annotation_id]`). This means every search result has a unique, shareable URL. Users can freely use the browser's native **Forward** and **Back** buttons to navigate through their search history without losing their context or place in the feed.
 
-# e2e tests
-$ npm run test:e2e
+### 4. Vector Search API (Backend & DB)
 
-# test coverage
-$ npm run test:cov
-```
+- **Details:** The backend is powered by NestJS and leverages a state-of-the-art AI stack for intelligent retrieval.
+- **Technology:**
+  - **Database:** Uses **Qdrant** as a high-performance Vector Database.
+  - **Embeddings:** Integrates **Google's `gemini-embedding-001`** model via the Generative AI API to convert descriptive garment attributes into high-dimensional vectors.
+  - **Logic:** The backend intelligently filters searches. It can search for an entire "global" look or isolate a specific local garment category (filtering out minor details like buttons or zippers to focus on core clothing items).
 
-## Deployment
+### 5. Dataset Integration
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- **Details:** The entire system is built upon the robust **Fashionpedia** dataset (`instances_attributes_val2020.json`). The custom Python script (`index_data.py`) processes this dataset, extracting rich annotations, bounding boxes, segmentation masks, and descriptive attributes, converting them into optimized embeddings for Qdrant.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 🧠 Other Considerations: UX for Finding Unique Clothes
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Building a tool for fashion discovery requires more than just accurate search; it demands a user experience that encourages exploration and serendipity.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+When designing the flow for finding unique clothes, the following considerations were paramount:
 
-## Resources
+1. **Visual-First Interaction:** Fashion is inherently visual. By utilizing precise segmentation masks rather than simple bounding boxes, users interact directly with the _shape_ of the garment. This tactile feel makes the discovery process feel more natural and less like interacting with a database.
+2. **Contextual Discovery:** Users rarely search for a "red shirt" in a vacuum. They see a red shirt as part of an outfit. The system is designed to show the _target_ item alongside its _context_ (the full look), allowing users to understand how a piece might be styled before diving into similar items.
+3. **Frictionless Exploration:** The combination of infinite scrolling and instant URL updates removes friction. Users can fall down a "rabbit hole" of similar items, clicking from one unique piece to another, knowing they can easily hit the "Back" button to return to a previous branching path.
+4. **Graceful Handling of Edge Cases:** The backend specifically filters out hyper-specific garment parts (like 'lapel' or 'zipper') from the main search flow. This prevents the user from accidentally searching for similar zippers when they actually want a similar jacket, significantly improving the relevance of recommendations for unique, entire clothing pieces.
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🛠️ Tech Stack Summary
 
-## Support
+- **Frontend:** Next.js (React), Tailwind CSS, Framer Motion (Playwright for verification)
+- **Backend:** NestJS (Node.js/TypeScript)
+- **Database:** Qdrant (Vector DB)
+- **AI/ML:** Google Generative AI (`gemini-embedding-001`)
+- **Data Processing:** Python (Pillow, NumPy)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+_This project represents a complete, functional prototype ready for further refinement and deployment._
