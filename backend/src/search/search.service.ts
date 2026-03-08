@@ -157,7 +157,10 @@ export class SearchService implements OnModuleInit {
         vector: targetVector,
         limit: n,
         offset: offset, // 💡 페이지네이션 오프셋 적용
-        filter: { must: mustFilters },
+        filter: {
+          must: mustFilters,
+          must_not: [{ has_id: [targetPoint.id] }],
+        },
         with_payload: true,
       });
 
