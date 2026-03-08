@@ -8,13 +8,10 @@ export class SearchController {
   @Get('homepage')
   async getHomepage(
     @Query('n', new ParseIntPipe({ optional: true })) n?: number,
-    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
+    @Query('offset') offset?: string,
   ) {
-    // 기본값 설정 (명세서: n=100)
     const limit = n || 100;
-    const startOffset = offset || 0;
-
-    return this.searchService.getHomepageFeed(limit, startOffset);
+    return this.searchService.getHomepageFeed(limit, offset);
   }
 
   @Get('search')

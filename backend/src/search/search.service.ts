@@ -5,13 +5,28 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // 💡 제외할 세부 부위 리스트 정의 (메인 카테고리만 남기기 위함)
 const EXCLUDED_PARTS = [
-  'sleeve',
-  'pocket',
-  'zipper',
-  'button',
+  // Garment Parts
+  'hood',
   'collar',
   'lapel',
-  'cuff',
+  'epaulette',
+  'sleeve',
+  'pocket',
+  'neckline',
+  // Closures
+  'buckle',
+  'zipper',
+  // Decorations
+  'applique',
+  'bead',
+  'bow',
+  'flower',
+  'fringe',
+  'ribbon',
+  'rivet',
+  'ruffle',
+  'sequin',
+  'tassel',
 ];
 
 @Injectable()
@@ -31,41 +46,53 @@ export class SearchService implements OnModuleInit {
     console.log('✅ SearchService initialized. Qdrant is ready.');
   }
 
-  async getHomepageFeed(n = 100, offset?: string | number) {
+  async getHomepageFeed(n: any = 50, offset?: string | number) {
     try {
-      const scrollOffset =
-        offset === 0 || !offset ? undefined : offset.toString();
+      // 💡 1. n(limit)을 확실하게 정수로 변환 (400 에러 방지 핵심)
+      const limit = parseInt(n.toString(), 10) || 50;
+
+      // 💡 2. offset 타입 정규화
+      let scrollOffset: any = offset;
+      if (
+        !offset ||
+        offset === 'undefined' ||
+        offset === 'null' ||
+        offset === '0'
+      ) {
+        scrollOffset = undefined;
+      } else if (!isNaN(Number(offset))) {
+        // 숫자 형태의 문자열("17880")이면 반드시 숫자로 변환
+        scrollOffset = Number(offset);
+      }
+      // UUID 형태("6b959af7...")는 문자열 그대로 유지
 
       const response = await this.qdrantClient.scroll('fashionpedia_v1', {
-        filter: {
-          must: [{ key: 'is_global', match: { value: true } }],
-        },
-        limit: n,
-        offset: scrollOffset,
+        filter: { must: [{ key: 'is_global', match: { value: true } }] },
+        limit: limit, // 💡 정수 전달
+        offset: scrollOffset, // 💡 정규화된 타입 전달
         with_payload: true,
-        with_vector: false,
       });
 
-      const images = response.points.map((point) => {
+      const images = (response.points || []).map((point) => {
         const p = point.payload as any;
-        const fileName = p?.url as string;
         return {
-          image_id: p?.image_id as number,
-          url: `http://localhost:3000/static-images/${fileName}`,
+          image_id: p?.image_id,
+          url: `http://localhost:3000/static-images/${p?.url}`,
+          width: p?.width,
+          height: p?.height,
         };
       });
 
       return {
         images,
-        next_offset: response.next_page_offset,
+        next_offset: response.next_page_offset || null,
       };
     } catch (error) {
+      // 💡 에러 로그를 상세히 찍어 Qdrant가 왜 화가 났는지 확인합니다.
       console.error('❌ Qdrant Scroll Error:', error);
-      throw error;
+      return { images: [], next_offset: null };
     }
   }
-
-  // backend/src/search/search.service.ts
 
   async searchSimilarItems(imageId: number, annId?: string | number, n = 100) {
     try {
@@ -132,7 +159,7 @@ export class SearchService implements OnModuleInit {
       const searchResults = await this.qdrantClient.search('fashionpedia_v1', {
         vector: targetVector,
         limit: n,
-        filter: { must: mustFilters }, // 💡 동적으로 생성된 필터 적용
+        filter: { must: mustFilters },
         with_payload: true,
       });
 
@@ -170,6 +197,8 @@ export class SearchService implements OnModuleInit {
           url: `${baseUrl}/${res.payload?.url}`,
           score: res.score,
           category: res.payload?.category_name, // 💡 결과 카테고리 확인용 추가
+          width: res.payload?.width, // 💡 결과창 Masonry용
+          height: res.payload?.height, // 💡 결과창 Masonry용
         })),
       };
     } catch (error) {
