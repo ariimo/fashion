@@ -25,7 +25,12 @@ export default function Home() {
     if (node) observer.current.observe(node);
   }, [loading, hasMore, nextOffset]);
 
+  const isFetching = useRef(false);
+
   const fetchImages = useCallback((offset: string | number | null) => {
+    if (isFetching.current) return; 
+    isFetching.current = true;
+    
     if (loading) return;
     setLoading(true);
     
@@ -57,6 +62,7 @@ export default function Home() {
       })
       .finally(() => {
         setLoading(false);
+        isFetching.current = false;
       });
   }, [loading]);
 
