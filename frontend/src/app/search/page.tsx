@@ -136,7 +136,7 @@ function SearchContent() {
                         onMouseEnter={() => setHoveredAnnId(currentAnnId)}
                         onMouseLeave={() => setHoveredAnnId(null)}
                         onClick={() => router.push(`/search?i=${imageId}&a=${ann.id}`)}
-                        className="cursor-pointer pointer-events-auto"
+                        className={`cursor-pointer pointer-events-auto fashion-polygon ${isSelected ? 'selected-polygon' : ''}`}
                       >
                         {ann.segmentation.map((seg: number[], sIdx: number) => (
                           <polygon
