@@ -73,7 +73,7 @@ export default function Home() {
       </header>
 
       {/* 💡 기존 columns 레이아웃 유지 */}
-      <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
+      <div className="columns-3xs sm:columns-xs gap-4 space-y-4">
         {images.map((img, idx) => {
           const isLastImage = images.length === idx + 1;
           
