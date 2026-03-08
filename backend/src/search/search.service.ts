@@ -94,18 +94,22 @@ export class SearchService implements OnModuleInit {
     }
   }
 
-  async searchSimilarItems(imageId: number, annId?: string | number, n = 100) {
+  async searchSimilarItems(
+    imageId: number,
+    annId?: string | number,
+    n = 50,
+    offset = 0,
+  ) {
+    // 💡 offset 파라미터 추가
     try {
       let targetPoint: any;
 
       // 1. 기준 포인트 조회 (기존 로직 유지)
-      // 💡 수정된 부분: annId가 있을 경우 'annotation_id' 필드로 검색합니다.
-      // 💡 1. annId가 UUID 문자열이므로 retrieve를 사용해 즉시 조회
       if (annId && annId !== 'undefined') {
         const pointResult = await this.qdrantClient.retrieve(
           'fashionpedia_v1',
           {
-            ids: [annId], // 💡 UUID로 직접 조회
+            ids: [annId as string],
             with_vector: true,
             with_payload: true,
           },
@@ -113,7 +117,6 @@ export class SearchService implements OnModuleInit {
         if (pointResult.length > 0) targetPoint = pointResult[0];
       }
 
-      // 💡 2. ID 조회가 실패했을 때만 Global 스타일로 Fallback
       if (!targetPoint) {
         const targetResponse = await this.qdrantClient.scroll(
           'fashionpedia_v1',
@@ -134,20 +137,14 @@ export class SearchService implements OnModuleInit {
       if (!targetPoint) throw new Error('기준 아이템을 찾을 수 없습니다.');
 
       const targetVector = targetPoint.vector as number[];
-      const isGlobalSource = targetPoint.payload?.is_global; // 💡 기준이 전체 사진인가?
-      const categoryName = targetPoint.payload?.category_name; // 💡 기준 아이템의 카테고리 (셔츠, 신발 등)
+      const isGlobalSource = targetPoint.payload?.is_global;
+      const categoryName = targetPoint.payload?.category_name;
 
-      console.log(
-        `--- [ID: ${annId || 'Global'}] Vector Preview:`,
-        targetVector.slice(0, 5),
-      );
-
-      // 💡 2. 동적 검색 필터 구축 (핵심 로직)
+      // 2. 동적 검색 필터 구축
       const mustFilters: any[] = [
-        { key: 'is_global', match: { value: isGlobalSource } }, // 💡 전체 사진이면 전체 사진끼리, 조각이면 조각끼리 검색
+        { key: 'is_global', match: { value: isGlobalSource } },
       ];
 
-      // 💡 아이템(셔츠/신발 등) 검색일 경우, 같은 카테고리 안에서만 찾도록 필터 추가
       if (!isGlobalSource && categoryName) {
         mustFilters.push({
           key: 'category_name',
@@ -155,10 +152,11 @@ export class SearchService implements OnModuleInit {
         });
       }
 
-      // 3. 유사 아이템 검색 실행
+      // 3. 유사 아이템 검색 실행 (offset 반영)
       const searchResults = await this.qdrantClient.search('fashionpedia_v1', {
         vector: targetVector,
         limit: n,
+        offset: offset, // 💡 페이지네이션 오프셋 적용
         filter: { must: mustFilters },
         with_payload: true,
       });
@@ -196,10 +194,13 @@ export class SearchService implements OnModuleInit {
           image_id: res.payload?.image_id,
           url: `${baseUrl}/${res.payload?.url}`,
           score: res.score,
-          category: res.payload?.category_name, // 💡 결과 카테고리 확인용 추가
-          width: res.payload?.width, // 💡 결과창 Masonry용
-          height: res.payload?.height, // 💡 결과창 Masonry용
+          category: res.payload?.category_name,
+          width: res.payload?.width,
+          height: res.payload?.height,
+          description: res.payload?.description,
         })),
+        // 💡 다음 페이지 조회를 위한 힌트 (결과가 limit만큼 왔다면 더 있다고 가정)
+        next_offset: searchResults.length === n ? offset + n : null,
       };
     } catch (error) {
       console.error('❌ Search Error:', error);

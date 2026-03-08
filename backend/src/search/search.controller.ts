@@ -19,7 +19,13 @@ export class SearchController {
     @Query('i', ParseIntPipe) imageId: number,
     @Query('a') annId?: string,
     @Query('n', new ParseIntPipe({ optional: true })) n?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ) {
-    return this.searchService.searchSimilarItems(imageId, annId, n || 100);
+    return this.searchService.searchSimilarItems(
+      imageId,
+      annId,
+      n || 50,
+      offset || 0,
+    );
   }
 }
