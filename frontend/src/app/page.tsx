@@ -1,75 +1,18 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
 import { Loader2, Search } from 'lucide-react';
 import Link from 'next/link';
+import { useHomepageFeed } from '@/hooks/useHomepageFeed';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 export default function Home() {
-  const [images, setImages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false); // 💡 초기값을 false로 설정 (첫 호출에서 true로 변경됨)
-  const [nextOffset, setNextOffset] = useState<string | number | null>(null);
-  const [hasMore, setHasMore] = useState(true);
+  const { images, loading, hasMore, fetchNextPage } = useHomepageFeed();
   
-  const observer = useRef<IntersectionObserver | null>(null);
-  const lastImageElementRef = useCallback((node: HTMLAnchorElement) => {
-    if (loading) return;
-    if (observer.current) observer.current.disconnect();
-
-    observer.current = new IntersectionObserver(entries => {
-      // 💡 다음 데이터가 확실히 있을 때만 트리거
-      if (entries[0].isIntersecting && hasMore && !loading) {
-        fetchImages(nextOffset);
-      }
-    });
-
-    if (node) observer.current.observe(node);
-  }, [loading, hasMore, nextOffset]);
-
-  const isFetching = useRef(false);
-
-  const fetchImages = useCallback((offset: string | number | null) => {
-    if (isFetching.current) return; 
-    isFetching.current = true;
-    
-    if (loading) return;
-    setLoading(true);
-    
-    const hasOffset = offset !== null && offset !== undefined && offset !== 'null' && offset !== 'undefined';
-    const queryOffset = hasOffset ? `&offset=${offset}` : '';
-    const url = `http://localhost:3000/api/v1/homepage?n=50${queryOffset}`;
-
-    fetch(url)
-      .then((res) => {
-        // 💡 res.ok가 아닐 때만 로그를 남깁니다.
-        if (!res.ok) {
-          throw new Error(`API Error (Status: ${res.status}) on URL: ${url}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data?.images && Array.isArray(data.images)) {
-          setImages((prev) => [...prev, ...data.images]);
-          setNextOffset(data.next_offset);
-          if (!data.next_offset) setHasMore(false);
-        } else {
-          setHasMore(false);
-        }
-      })
-      .catch((err) => {
-        // 💡 여기서만 최종적으로 에러를 출력합니다.
-        console.error('Fetch error:', err.message);
-        setHasMore(false);
-      })
-      .finally(() => {
-        setLoading(false);
-        isFetching.current = false;
-      });
-  }, [loading]);
-
-  useEffect(() => {
-    fetchImages(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const lastImageElementRef = useIntersectionObserver({
+    loading,
+    hasMore,
+    onIntersect: fetchNextPage,
+  });
 
   return (
     <main className="min-h-screen bg-white p-4 md:p-8">
@@ -87,7 +30,7 @@ export default function Home() {
             <Link
               href={`/search?i=${img.image_id}`}
               key={`${img.image_id}-${idx}`}
-              ref={isLastImage ? lastImageElementRef : null}
+              ref={isLastImage ? (lastImageElementRef as any) : null}
               className="relative break-inside-avoid group block overflow-hidden rounded-2xl bg-gray-100 transition-all hover:shadow-2xl"
               style={{ aspectRatio: `${img.width} / ${img.height}` }}
             >
